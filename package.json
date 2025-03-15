@@ -1,0 +1,20 @@
+{
+  "name": "harvest-kimai-transfer",
+  "version": "1.0.0",
+  "description": "A command line utility to extract time entries from Harvest and transfer them to Kimai",
+  "main": "index.js",
+  "scripts": {
+    "harvest-extract": "node bin/harvest-extract.js",
+    "kimai-import": "node bin/kimai-import.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "sqlite3": "^5.1.6",
+    "winston": "^3.11.0",
+    "yargs": "^17.7.2"
+  }
+}
