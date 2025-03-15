@@ -28,8 +28,14 @@ class KimaiImporter {
         return 0;
       }
       
+      // Sort entries by date to maintain sequential order
+      entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+      
       let imported = 0;
       let failed = 0;
+      
+      // Track the latest end time for each date to avoid overlaps
+      const dateEndTimeMap = new Map();
       
       for (const entry of entries) {
         try {
@@ -40,7 +46,7 @@ class KimaiImporter {
           }
           
           // Transform Harvest entry to Kimai format
-          const kimaiEntry = this.transformEntry(entry);
+          const kimaiEntry = this.transformEntry(entry, dateEndTimeMap);
           
           logger.debug(`Importing entry ${entry.harvest_id} to Kimai`, { kimaiEntry });
           
@@ -68,41 +74,60 @@ class KimaiImporter {
   /**
    * Transform Harvest entry to Kimai format
    * @param {Object} entry - Entry from storage with task mapping
+   * @param {Map} dateEndTimeMap - Map tracking end times for each date
    * @returns {Object} Entry formatted for Kimai
    */
-  transformEntry(entry) {
+  transformEntry(entry, dateEndTimeMap) {
     let beginTime;
+    const entryDate = entry.date;
     
     // Check if created_at exists
     if (entry.created_at) {
       const createdAtDate = new Date(entry.created_at);
-      const entryDate = new Date(entry.date);
+      const dateObj = new Date(entryDate);
       
       // Compare date portions (year, month, day) to see if they're the same
-      const sameDate = createdAtDate.getFullYear() === entryDate.getFullYear() &&
-                        createdAtDate.getMonth() === entryDate.getMonth() &&
-                        createdAtDate.getDate() === entryDate.getDate();
+      const sameDate = createdAtDate.getFullYear() === dateObj.getFullYear() &&
+                        createdAtDate.getMonth() === dateObj.getMonth() &&
+                        createdAtDate.getDate() === dateObj.getDate();
       
       if (sameDate) {
         // If same date, use the created_at timestamp
         logger.debug(`Entry ${entry.harvest_id}: Using created_at time since date matches entry date`);
         beginTime = createdAtDate;
       } else {
-        // If different date, use the entry date with 9:00 AM
-        logger.debug(`Entry ${entry.harvest_id}: Using entry date with 9:00 AM since dates don't match`);
-        beginTime = new Date(entry.date);
-        beginTime.setHours(9, 0, 0, 0); // Set to 9:00:00.000 AM
+        // If different date, check if we have an end time for this date already
+        if (dateEndTimeMap.has(entryDate)) {
+          // Use the last entry's end time as our start time
+          beginTime = new Date(dateEndTimeMap.get(entryDate));
+          logger.debug(`Entry ${entry.harvest_id}: Using sequential time ${beginTime.toTimeString()}`);
+        } else {
+          // Start from 9:00 AM for first entry of the day
+          beginTime = new Date(entryDate);
+          beginTime.setHours(9, 0, 0, 0);
+          logger.debug(`Entry ${entry.harvest_id}: Using 9:00 AM as start time for new date`);
+        }
       }
     } else {
-      // Fallback to entry date with 9:00 AM if no created_at
-      logger.debug(`Entry ${entry.harvest_id}: No created_at timestamp, using entry date with 9:00 AM`);
-      beginTime = new Date(entry.date);
-      beginTime.setHours(9, 0, 0, 0); // Set to 9:00:00.000 AM
+      // No created_at, check if we have an end time for this date already
+      if (dateEndTimeMap.has(entryDate)) {
+        // Use the last entry's end time as our start time
+        beginTime = new Date(dateEndTimeMap.get(entryDate));
+        logger.debug(`Entry ${entry.harvest_id}: Using sequential time ${beginTime.toTimeString()}`);
+      } else {
+        // Start from 9:00 AM for first entry of the day
+        beginTime = new Date(entryDate);
+        beginTime.setHours(9, 0, 0, 0);
+        logger.debug(`Entry ${entry.harvest_id}: Using 9:00 AM as start time for new date`);
+      }
     }
     
     // Calculate end time by adding hours
     const endTime = new Date(beginTime.getTime());
     endTime.setMinutes(endTime.getMinutes() + Math.round(entry.hours * 60));
+    
+    // Update the map with the latest end time for this date
+    dateEndTimeMap.set(entryDate, endTime);
     
     return {
       begin: beginTime.toISOString(),
