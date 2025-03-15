@@ -71,8 +71,34 @@ class KimaiImporter {
    * @returns {Object} Entry formatted for Kimai
    */
   transformEntry(entry) {
-    // Parse created_at as the begin time
-    const beginTime = entry.created_at ? new Date(entry.created_at) : new Date();
+    let beginTime;
+    
+    // Check if created_at exists
+    if (entry.created_at) {
+      const createdAtDate = new Date(entry.created_at);
+      const entryDate = new Date(entry.date);
+      
+      // Compare date portions (year, month, day) to see if they're the same
+      const sameDate = createdAtDate.getFullYear() === entryDate.getFullYear() &&
+                        createdAtDate.getMonth() === entryDate.getMonth() &&
+                        createdAtDate.getDate() === entryDate.getDate();
+      
+      if (sameDate) {
+        // If same date, use the created_at timestamp
+        logger.debug(`Entry ${entry.harvest_id}: Using created_at time since date matches entry date`);
+        beginTime = createdAtDate;
+      } else {
+        // If different date, use the entry date with 9:00 AM
+        logger.debug(`Entry ${entry.harvest_id}: Using entry date with 9:00 AM since dates don't match`);
+        beginTime = new Date(entry.date);
+        beginTime.setHours(9, 0, 0, 0); // Set to 9:00:00.000 AM
+      }
+    } else {
+      // Fallback to entry date with 9:00 AM if no created_at
+      logger.debug(`Entry ${entry.harvest_id}: No created_at timestamp, using entry date with 9:00 AM`);
+      beginTime = new Date(entry.date);
+      beginTime.setHours(9, 0, 0, 0); // Set to 9:00:00.000 AM
+    }
     
     // Calculate end time by adding hours
     const endTime = new Date(beginTime.getTime());
