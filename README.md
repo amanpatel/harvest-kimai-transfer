@@ -1,6 +1,6 @@
 # Harvest to Kimai Time Entry Transfer
 
-A command line utility to extract time entries from Harvest and transfer them to Kimai.
+A command line utility to extract time entries from Harvest and transfer them to Kimai. This also allows you to import tasks from Harvest and map them to the activities and projects in Kimai. This only works for me at present, but can be modified to work for you.
 
 ## Overview
 
@@ -84,51 +84,6 @@ harvest-kimai/
 └── package.json
 ```
 
-## Development Plan
-
-### Phase 1: Project Setup
-- [x] Initialize npm project and repository
-- [ ] Set up basic project structure
-- [ ] Configure environment variables
-- [ ] Set up error handling and logging
-
-### Phase 2: Harvest Integration
-- [ ] Develop Harvest API client
-- [ ] Implement time entry fetching
-- [ ] Add date range filtering
-- [ ] Format Harvest data for storage
-
-### Phase 3: Local Storage
-- [ ] Implement SQLite database schema
-- [ ] Create data access layer
-- [ ] Add functions to store Harvest entries
-- [ ] Add query functions to retrieve stored entries
-
-### Phase 4: Kimai Integration
-- [ ] Develop Kimai API client
-- [ ] Map Harvest data format to Kimai format
-- [ ] Implement entry upload functionality
-- [ ] Add validation and error handling
-
-### Phase 5: Command Line Interface
-- [ ] Create CLI for Harvest extraction
-- [ ] Create CLI for Kimai import
-- [ ] Add command line arguments and help text
-- [ ] Implement progress reporting
-
-### Phase 6: Testing and Documentation
-- [ ] Write tests for core functionality
-- [ ] Complete documentation
-- [ ] Create sample usage scripts
-
-## Dependencies
-
-This project relies on the following npm packages:
-- `axios` - For API requests
-- `yargs` - For command line argument parsing
-- `dotenv` - For environment variable management
-- `sqlite3` - For local data storage
-- `winston` - For logging
 
 ## License
 
