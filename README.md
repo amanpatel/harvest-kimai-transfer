@@ -16,7 +16,7 @@ git clone https://github.com/apatel/harvest-kimai-transfer.git
 cd harvest-kimai-transfer
 
 # Install dependencies
-npm install
+yarn
 ```
 
 ## Configuration
@@ -38,8 +38,11 @@ KIMAI_API_TOKEN=your_kimai_api_token
 ### Extracting Time Entries from Harvest
 
 ```bash
-# Extract entries for a specific date range
-node harvest-extract.js --from 2023-01-01 --to 2023-01-31
+yarn run harvest-extract  --tasks
+
+yarn run harvest-extract  --current-month
+yarn run harvest-extract  --from=2025-02-01 --to=2025-03-01
+yarn run harvest-extract  --from=2025-03-01 --to=2025-04-01
 
 # Extract entries for the current month
 node harvest-extract.js --current-month
